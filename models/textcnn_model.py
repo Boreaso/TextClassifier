@@ -91,14 +91,20 @@ class TextCNNModel(BaseModel):
 
     def _build_model(self):
         """
-        :rtype: Model
+        TextCNN模型架构，keras实现。
+        :rtype: keras Model
         """
         if self.pre_embedding:
+            # 如果使用预训练的词向量，不需要Embedding层，
+            # 单个样本输入shape=(sequence_length, embedding_size)
+
             # Input layer.
             x_input = Input(shape=(self.sequence_length, self.embedding_size),
                             dtype='float32')
             embedding = x_input
         else:
+            # 如果输入为单词id序列，需要添加Embedding层对词进行向量化表示
+
             # Input layer.
             x_input = Input(shape=(self.sequence_length,), dtype='int32')
 
@@ -114,6 +120,8 @@ class TextCNNModel(BaseModel):
         pool_layers = []
 
         for size in self.filter_sizes:
+            # 不同尺度的卷积核
+
             # Convolution layers.
             # input: [None, sequence_length, embedding_size]
             # output: [None, sequence_length - size + 1, num_filters]
@@ -155,10 +163,9 @@ class TextCNNModel(BaseModel):
 
     def train(self, train_file):
         """
-        Train textCNN with input data.
-        :param input_file: input file path
+        训练模型。
+        :param train_file: 输入数据集文件路径
         format: label word1 word2 word3 ...
-        :return:
         """
         print('`%s` training...' % self.__class__.__name__)
 
@@ -179,7 +186,12 @@ class TextCNNModel(BaseModel):
         self.model.save(self.model_path)
         self.trained = True
 
-    def predict(self, line):
+    def predict(self, doc):
+        """
+        预测输入文本。
+        :param doc: 输入文本数据。
+        :return: dict，key: 类别标记， value: 文本输入key类的概率
+        """
         # 加载预训练模型
         if not self.trained:
             if os.path.exists(self.model_path):
@@ -188,7 +200,7 @@ class TextCNNModel(BaseModel):
             else:
                 raise FileNotFoundError('Model file `%s` not found.' % self.model_path)
 
-        seg = jieba.cut(line)
+        seg = jieba.cut(doc)
 
         # feature
         if self.pre_embedding:
@@ -207,6 +219,11 @@ class TextCNNModel(BaseModel):
         return res
 
     def test(self, test_file):
+        """
+        对输入数据集的样本进行测试。
+        :param test_file: 测试数据集路径
+        :return: 测试评估指标
+        """
         print('`%s` testing...' % self.__class__.__name__)
 
         test_start = time.time()

@@ -39,6 +39,10 @@ class BayesModel(BaseModel):
                 raise FileNotFoundError('Model file `%s` not found.' % self.model_path)
 
     def train(self, input_file):
+        """
+        训练。
+        :param input_file: 训练数据集路径
+        """
         print('`%s` training...' % self.__class__.__name__)
 
         train_start = time.time()

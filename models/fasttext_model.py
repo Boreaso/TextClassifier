@@ -51,16 +51,26 @@ class FastTextModel(BaseModel):
             else:
                 raise FileNotFoundError('Model file `%s` not found.' % self.model_path)
 
-    def train(self, input_file):
+    def train(self, train_file):
+        """
+        训练模型。
+        :param train_file: 输入数据集文件路径
+            format: label word1 word2 word3 ...
+        """
         print('%s training...' % self.__class__.__name__)
         train_start = time.time()
-        self.model = ft.train_supervised(input_file, **self.kwargs)
+        self.model = ft.train_supervised(train_file, **self.kwargs)
         self.model.save_model(self.model_path)
         self.trained = True
         print('`%s` train finished, time %ss' %
               (self.__class__.__name__, time.time() - train_start))
 
     def predict(self, doc):
+        """
+        预测输入文本。
+        :param doc: 输入文本数据。
+        :return: dict，key: 类别标记， value: 文本输入key类的概率
+        """
         # 加载预训练模型
         if not self.trained:
             if os.path.exists(self.model_path):
